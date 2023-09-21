@@ -61,7 +61,7 @@ def load():
         top()  
 
 def top():
-    subprocess.Popen(['python3', 'main.py'])
+    subprocess.Popen(['python', 'main.py'])
 
 root = tk.Tk()
 root.title("Splash screen")

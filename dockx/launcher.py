@@ -3,10 +3,10 @@ import os
 import time
 
 def launch_stats_gen():
-    os.system("python3 stats_gen.py")
+    os.system("python stats_gen.py")
 
 def launch_gen():
-    os.system("python3 backend/gen.py")
+    os.system("python backend/gen.py")
 
 if __name__ == '__main__':
     # Create two separate processes
