@@ -10,7 +10,8 @@ import pickle
 import threading
 import time
 import os
-import queue
+import keyboard
+import psutil
 
 current_directory = os.getcwd()
 lock = threading.Lock()
@@ -148,6 +149,26 @@ def update_graph():
     # Pause for a shorter duration to control the refresh rate
     root.after(100, update_graph)  # Schedule the next update after 60 milliseconds
 
+def is_key_combination_pressed(combination):
+    # Check if all of the keys in the combination are pressed.
+    for key in combination:
+        if not keyboard.is_pressed(key):
+            return False
+
+    # All of the keys in the combination are pressed.
+    return True
+
+def is_alt_f4_pressed(event):
+    combination = ["alt", "f4"]
+    return is_key_combination_pressed(combination)
+
+def close_application(event):
+    root.destroy()
+    for proc in psutil.process_iter():
+        # check whether the process name matches
+        if proc.name() == "python.exe":
+            proc.kill()
+
 if __name__ == '__main__':
      # Create a socket and bind it to a specific host and port
     host = 'localhost'
@@ -284,6 +305,53 @@ if __name__ == '__main__':
         '''
         Actual Graph implementation
         '''
+         # Create a matplotlib figure and axes
+        fig, ax = plt.subplots(figsize=(10, 2))
+        fig.set_size_inches(10, 3)  # Set the size of the plot window
+        ax.set_facecolor('#1F1E2E')  # Set the plot background color
+        fig.set_facecolor('#1F1E2E')  # Set the plot background color
+        ax.tick_params(axis='y', colors='white')
+        # Set up the initial plot
+        num_points = 60  # Number of data points to show initially (15 seconds with 0.25-second intervals)
+        x = np.arange(num_points) * 0.25  # Time axis in seconds
+        num_containers = len(c_ids) if c_ids else 0  # Number of containers
+        '''if num_containers == 0:
+            num_containers = 1
+        else:
+            num_containers = num_containers
+        '''
+        y = ((num_containers, num_points))
+        y = np.zeros(y)  # Empty array for CPU usage of each container
+
+        # Define a modern and aesthetic color palette
+        palette = ['#EF476F', '#FFD166', '#06D6A0', '#118AB2', '#073B4C', '#8338EC', '#3A86FF']
+        lines = [ax.plot(x, y[i], color=palette[i], label=f'Container {i+1}')[0] for i in range(num_containers)]
+        ax.set_ylim(0, 100)  # Set y-axis limits for CPU usage percentage
+        ax.set_xticks([])  # Hide x-axis ticks and labels
+        ax.spines['top'].set_visible(False)  # Remove top border
+        ax.spines['right'].set_visible(False)  # Remove right border
+        ax.spines['bottom'].set_visible(False)  # Remove bottom border
+        ax.spines['left'].set_visible(False)  # Remove left border
+        ax.yaxis.grid(True, color='white', linestyle='solid', linewidth=0.5)  # Add horizontal grid lines
+        ax.xaxis.set_tick_params(color='white')  # Set x-axis tick color to white
+        ax.yaxis.set_tick_params(color='white')  # Set y-axis tick color to white
+        plt.setp(ax.spines.values(), color='white')  # Set color of all spines to white
+        plt.setp(ax.xaxis.get_ticklines(), color='white')  # Set color of x-axis tick lines to white
+        plt.setp(ax.yaxis.get_ticklines(), color='white')  # Set color of y-axis tick lines to white
+        ax.xaxis.label.set_color('white')  # Set color of x-axis label to white
+        ax.yaxis.label.set_color('white')  # Set color of y-axis label to white
+        plt.ion()  # Enable interactive mode for real-time updating
+        legend_displayed = True  # Flag to check if the legend is displayed
+
+        # Create a tkinter canvas and embed the matplotlib figure in it
+        canvas = FigureCanvasTkAgg(fig, master=network)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True,padx=0, pady=0)
+
+        # Start the graph update function
+        update_thread= threading.Thread(target=update_graph)
+        update_thread.start()
+        #update_graph()
 
         network.pack(side=LEFT, fill=BOTH, expand=TRUE, padx=10, pady=5)
         #STORAGE GRAPH
@@ -296,6 +364,53 @@ if __name__ == '__main__':
         '''
         Actual Graph implementation
         '''
+         # Create a matplotlib figure and axes
+        fig, ax = plt.subplots(figsize=(10, 2))
+        fig.set_size_inches(10, 3)  # Set the size of the plot window
+        ax.set_facecolor('#1F1E2E')  # Set the plot background color
+        fig.set_facecolor('#1F1E2E')  # Set the plot background color
+        ax.tick_params(axis='y', colors='white')
+        # Set up the initial plot
+        num_points = 60  # Number of data points to show initially (15 seconds with 0.25-second intervals)
+        x = np.arange(num_points) * 0.25  # Time axis in seconds
+        num_containers = len(c_ids) if c_ids else 0  # Number of containers
+        '''if num_containers == 0:
+            num_containers = 1
+        else:
+            num_containers = num_containers
+        '''
+        y = ((num_containers, num_points))
+        y = np.zeros(y)  # Empty array for CPU usage of each container
+
+        # Define a modern and aesthetic color palette
+        palette = ['#EF476F', '#FFD166', '#06D6A0', '#118AB2', '#073B4C', '#8338EC', '#3A86FF']
+        lines = [ax.plot(x, y[i], color=palette[i], label=f'Container {i+1}')[0] for i in range(num_containers)]
+        ax.set_ylim(0, 100)  # Set y-axis limits for CPU usage percentage
+        ax.set_xticks([])  # Hide x-axis ticks and labels
+        ax.spines['top'].set_visible(False)  # Remove top border
+        ax.spines['right'].set_visible(False)  # Remove right border
+        ax.spines['bottom'].set_visible(False)  # Remove bottom border
+        ax.spines['left'].set_visible(False)  # Remove left border
+        ax.yaxis.grid(True, color='white', linestyle='solid', linewidth=0.5)  # Add horizontal grid lines
+        ax.xaxis.set_tick_params(color='white')  # Set x-axis tick color to white
+        ax.yaxis.set_tick_params(color='white')  # Set y-axis tick color to white
+        plt.setp(ax.spines.values(), color='white')  # Set color of all spines to white
+        plt.setp(ax.xaxis.get_ticklines(), color='white')  # Set color of x-axis tick lines to white
+        plt.setp(ax.yaxis.get_ticklines(), color='white')  # Set color of y-axis tick lines to white
+        ax.xaxis.label.set_color('white')  # Set color of x-axis label to white
+        ax.yaxis.label.set_color('white')  # Set color of y-axis label to white
+        plt.ion()  # Enable interactive mode for real-time updating
+        legend_displayed = True  # Flag to check if the legend is displayed
+
+        # Create a tkinter canvas and embed the matplotlib figure in it
+        canvas = FigureCanvasTkAgg(fig, master=storage)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True,padx=0, pady=0)
+
+        # Start the graph update function
+        update_thread= threading.Thread(target=update_graph)
+        update_thread.start()
+        #update_graph()
 
         storagegraph.pack(side=TOP, fill=BOTH, expand=True, padx=0, pady=(0,0))
         storage.pack(side=LEFT, fill=BOTH, expand=TRUE, padx=10, pady=5)
@@ -317,6 +432,54 @@ if __name__ == '__main__':
         Actual Graph implementation
         '''
 
+         # Create a matplotlib figure and axes
+        fig, ax = plt.subplots(figsize=(10, 2))
+        fig.set_size_inches(10, 3)  # Set the size of the plot window
+        ax.set_facecolor('#1F1E2E')  # Set the plot background color
+        fig.set_facecolor('#1F1E2E')  # Set the plot background color
+        ax.tick_params(axis='y', colors='white')
+        # Set up the initial plot
+        num_points = 60  # Number of data points to show initially (15 seconds with 0.25-second intervals)
+        x = np.arange(num_points) * 0.25  # Time axis in seconds
+        num_containers = len(c_ids) if c_ids else 0  # Number of containers
+        '''if num_containers == 0:
+            num_containers = 1
+        else:
+            num_containers = num_containers
+        '''
+        y = ((num_containers, num_points))
+        y = np.zeros(y)  # Empty array for CPU usage of each container
+
+        # Define a modern and aesthetic color palette
+        palette = ['#EF476F', '#FFD166', '#06D6A0', '#118AB2', '#073B4C', '#8338EC', '#3A86FF']
+        lines = [ax.plot(x, y[i], color=palette[i], label=f'Container {i+1}')[0] for i in range(num_containers)]
+        ax.set_ylim(0, 100)  # Set y-axis limits for CPU usage percentage
+        ax.set_xticks([])  # Hide x-axis ticks and labels
+        ax.spines['top'].set_visible(False)  # Remove top border
+        ax.spines['right'].set_visible(False)  # Remove right border
+        ax.spines['bottom'].set_visible(False)  # Remove bottom border
+        ax.spines['left'].set_visible(False)  # Remove left border
+        ax.yaxis.grid(True, color='white', linestyle='solid', linewidth=0.5)  # Add horizontal grid lines
+        ax.xaxis.set_tick_params(color='white')  # Set x-axis tick color to white
+        ax.yaxis.set_tick_params(color='white')  # Set y-axis tick color to white
+        plt.setp(ax.spines.values(), color='white')  # Set color of all spines to white
+        plt.setp(ax.xaxis.get_ticklines(), color='white')  # Set color of x-axis tick lines to white
+        plt.setp(ax.yaxis.get_ticklines(), color='white')  # Set color of y-axis tick lines to white
+        ax.xaxis.label.set_color('white')  # Set color of x-axis label to white
+        ax.yaxis.label.set_color('white')  # Set color of y-axis label to white
+        plt.ion()  # Enable interactive mode for real-time updating
+        legend_displayed = True  # Flag to check if the legend is displayed
+
+        # Create a tkinter canvas and embed the matplotlib figure in it
+        canvas = FigureCanvasTkAgg(fig, master=memory)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True,padx=0, pady=0)
+
+        # Start the graph update function
+        update_thread= threading.Thread(target=update_graph)
+        update_thread.start()
+        #update_graph()
+
         memorygraph.pack(side=TOP, fill=BOTH, expand=True, padx=0, pady=(0,0))
         memory.pack(side=TOP, fill=BOTH, expand=TRUE, padx=20, pady=20)
         frame_BottomBottom.pack(side=TOP, fill=BOTH, expand=True, padx=20, pady=(20,0))
@@ -331,5 +494,8 @@ if __name__ == '__main__':
 
         frame_Bottom.pack(side=TOP, fill=BOTH, expand=True, padx=0, pady=0)
         frame_main.pack(side=RIGHT, padx=0, expand=True, fill=BOTH)
+
+        root.bind('<Alt-F4>', is_alt_f4_pressed)
+        root.bind('<Destroy>', close_application)
 
         root.mainloop()

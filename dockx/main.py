@@ -1,7 +1,7 @@
 from tkinter import LabelFrame, PhotoImage,messagebox, ttk
 from customtkinter import *
 from PIL import Image, ImageTk
-import os
+import os, multiprocessing, time, keyboard, psutil
 
 current_directory = os.getcwd()
 
@@ -30,7 +30,13 @@ def fun():
     else:
         fun_no()
 
-def stats():
+def launch_stats_gen():
+    os.system("python stats_gen.py")
+
+def launch_gen():
+    os.system("python backend/gen.py")
+
+def stats():   
     root.destroy()
     import launcher
 
@@ -48,6 +54,26 @@ def _create_circle_arc(self, x, y, r, **kwargs):
         del kwargs["end"]
     return self.create_arc(x-r, y-r, x+r, y+r, **kwargs)
 CTkCanvas.create_circle_arc = _create_circle_arc
+
+def is_key_combination_pressed(combination):
+    # Check if all of the keys in the combination are pressed.
+    for key in combination:
+        if not keyboard.is_pressed(key):
+            return False
+
+    # All of the keys in the combination are pressed.
+    return True
+
+def is_alt_f4_pressed(event):
+    combination = ["alt", "f4"]
+    return is_key_combination_pressed(combination)
+
+def close_application(event):
+    root.destroy()
+    for proc in psutil.process_iter():
+        # check whether the process name matches
+        if proc.name() == "python.exe":
+            proc.kill()
 
 if __name__ == '__main__':
     
@@ -172,5 +198,8 @@ if __name__ == '__main__':
 
     frame_Bottom.pack(side=BOTTOM,fill=BOTH,expand=True,padx=0,pady=0)
     frame_main.pack(side=RIGHT,padx=0,expand=True,fill=BOTH)
+    
+    root.bind('<Alt-F4>', is_alt_f4_pressed)
+    root.bind('<Destroy>', close_application)
 
     root.mainloop()

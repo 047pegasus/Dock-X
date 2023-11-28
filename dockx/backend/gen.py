@@ -51,4 +51,3 @@ if __name__ == '__main__':
     while True:    
         send_system_snapshot()        
         time.sleep(0.2)
-
